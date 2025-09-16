@@ -1,6 +1,8 @@
 import { Crown, Package, BarChart3, Users, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import reinoLogo from "@/assets/reino-logo.png";
 
 interface LayoutProps {
@@ -10,6 +12,13 @@ interface LayoutProps {
 }
 
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
+  const { signOut, user } = useAuth();
+  
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Logout realizado com sucesso!");
+  };
+
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
     { id: "products", label: "Produtos", icon: Package },
@@ -48,9 +57,16 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           })}
         </nav>
 
-        {/* Logout */}
-        <div className="absolute bottom-6 left-6 right-6">
-          <Button variant="outline" className="w-full justify-start">
+        {/* User Info & Logout */}
+        <div className="absolute bottom-6 left-6 right-6 space-y-2">
+          <div className="px-2 py-1 text-xs text-muted-foreground">
+            {user?.email}
+          </div>
+          <Button 
+            variant="outline" 
+            className="w-full justify-start"
+            onClick={handleSignOut}
+          >
             <LogOut className="w-4 h-4 mr-3" />
             Sair
           </Button>

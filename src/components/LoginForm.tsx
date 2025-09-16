@@ -3,21 +3,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Crown } from "lucide-react";
+import { Crown, UserPlus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import reinoLogo from "@/assets/reino-logo.png";
 
-interface LoginFormProps {
-  onLogin: () => void;
-}
-
-export function LoginForm({ onLogin }: LoginFormProps) {
+export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { signIn, signUp } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Temporário até conectar Supabase
-    onLogin();
+    setLoading(true);
+
+    try {
+      if (isSignUp) {
+        const { error } = await signUp(email, password, fullName);
+        if (error) {
+          toast.error(error.message);
+        } else {
+          toast.success("Conta criada com sucesso! Verifique seu email.");
+        }
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          toast.error("Email ou senha incorretos");
+        } else {
+          toast.success("Login realizado com sucesso!");
+        }
+      }
+    } catch (error) {
+      toast.error("Erro inesperado. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,6 +57,19 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nome Completo</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Seu nome completo"
+                  required={isSignUp}
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -56,16 +92,35 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 required
               />
             </div>
-            <Button type="submit" variant="hero" className="w-full">
-              <Crown className="w-4 h-4 mr-2" />
-              Entrar no Sistema
+            <Button type="submit" variant="hero" className="w-full" disabled={loading}>
+              {isSignUp ? (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  {loading ? "Criando conta..." : "Criar Conta"}
+                </>
+              ) : (
+                <>
+                  <Crown className="w-4 h-4 mr-2" />
+                  {loading ? "Entrando..." : "Entrar no Sistema"}
+                </>
+              )}
             </Button>
           </form>
           
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              {isSignUp ? "Já tem uma conta? Fazer login" : "Não tem conta? Criar uma"}
+            </button>
+          </div>
+          
           <div className="mt-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
             <p className="text-sm text-center text-muted-foreground">
-              🔒 <strong>Demonstração:</strong> Use qualquer email/senha para testar.
-              Para funcionalidade completa, conecte ao Supabase.
+              🔒 Sistema conectado ao Supabase com autenticação real.
+              {isSignUp ? " Crie sua conta para acessar o sistema." : " Use suas credenciais para entrar."}
             </p>
           </div>
         </CardContent>

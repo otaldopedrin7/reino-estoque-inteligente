@@ -2,13 +2,22 @@ import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { LoginForm } from "@/components/LoginForm";
 import { Dashboard } from "@/components/Dashboard";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState("dashboard");
+  const { user, loading } = useAuth();
 
-  if (!isAuthenticated) {
-    return <LoginForm onLogin={() => setIsAuthenticated(true)} />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="text-white text-lg">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginForm />;
   }
 
   const renderPage = () => {
